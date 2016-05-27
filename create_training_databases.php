@@ -6,7 +6,7 @@
  *
  * Created     : 2016-05-27
  * Modified    : 2016-05-27
- * Version     : 0.0.5
+ * Version     : 0.0.6
  * For LOVD    : 3.0-15
  *
  * Purpose     : Create or reset LOVD3 training databases, based on a master
@@ -43,7 +43,7 @@ if (isset($_SERVER['HTTP_HOST'])) {
 }
 
 $_CONFIG = array(
-    'version' => '0.0.5',
+    'version' => '0.0.6',
     'config_file' => 'config.ini.php', // The name of the LOVD config file that we'll search for.
     'master_dump_file' => 'SQL_dump_master.sql',
     'full_dump_file' => 'SQL_dump_ALL.sql',
@@ -235,8 +235,6 @@ if (!$bUseLOVDUser) {
     while (!$_CONFIG['user']['mysql_username']) {
         lovd_verifySettings('mysql_username', '  MySQL username to use for the database dump', 'string', '');
     }
-    // Overwrite the LOVD's INI settings, because that's easier.
-    $_INI['database']['username'] = $_CONFIG['user']['mysql_username'];
 }
 
 // Prepare dump file.
@@ -247,7 +245,7 @@ fclose($f);
 // Prepare command to dump the tables.
 // Note that the ORDER OF ARGUMENTS is extremely important. If --skip-opt is done last, part of the arguments are ignored.
 $sCommand = 'mysqldump --skip-opt --add-drop-table --add-locks --create-options --disable-keys --flush-logs --order-by-primary --quick --set-charset --single-transaction' .
-    ' --user ' . escapeshellarg($_INI['database']['username']);
+    ' --user ' . escapeshellarg(($_CONFIG['user']['mysql_username']? $_CONFIG['user']['mysql_username'] : $_INI['database']['username']));
 if ($bUseLOVDUser) {
     $sCommand .= ' --password=' . escapeshellarg($_INI['database']['password']);
 } else {
@@ -285,6 +283,7 @@ print('  OK!' . "\n");
 // Write massive SQL file for all instances.
 print('  Creating SQL dump for all instances... ');
 $f = fopen($_CONFIG['full_dump_file'], 'w');
+fputs($f, 'USE ' . $_INI['database']['database'] . "\n\n");
 $sTemplate = file_get_contents($_CONFIG['master_dump_file']);
 
 for ($i = 1; $i <= $_CONFIG['user']['training_instances']; $i++) {
@@ -308,7 +307,7 @@ for ($i = 1; $i <= $_CONFIG['user']['training_instances']; $i++) {
 
     // Remove directory, if it exists.
     if (file_exists($sDirName)) {
-        exec('rm -r ' . $sDirName, $aOutput, $nReturn);
+        exec('rm -rf ' . $sDirName, $aOutput, $nReturn);
         if ($nReturn) {
             die("\n" . '    Failed.
       Could not remove directory ' . $sDirName . '.' . "\n");
@@ -323,11 +322,30 @@ for ($i = 1; $i <= $_CONFIG['user']['training_instances']; $i++) {
     }
 
     // Modify the config.ini.php file. It's easier to take the one from master.
-    exec('sed \'s/master/' . $i . '/\' ' . $_CONFIG['user']['lovd_master_path'] . '/' . $_CONFIG['config_file'] . ' > ' . $sDirName . '/' . $_CONFIG['config_file'], $aOutput, $nReturn);
+    exec('sed \'s/master/' . $i . '/\' ' . $_CONFIG['user']['lovd_master_path'] . '/' .
+        $_CONFIG['config_file'] . ' > ' . $sDirName . '/' . $_CONFIG['config_file'],
+        $aOutput, $nReturn);
     if ($nReturn) {
         die("\n" . '    Failed.
       Could not create ' . $_CONFIG['config_file'] . ' for ' . $sDirName . '.' . "\n");
     }
 }
 print(' OK!' . "\n");
+
+
+
+
+
+// Finally, load in the MySQL dump file.
+// Write massive SQL file for all instances.
+print('  Loading SQL dump for all instances... ');
+exec('mysql --user ' . escapeshellarg($_INI['database']['username']) .
+    ' --password=' . escapeshellarg($_INI['database']['password']) .
+    ' < ' . $_CONFIG['full_dump_file'], $aOutput, $nReturn);
+if ($nReturn) {
+    die('Failed.
+    Could not load SQL dump.' . "\n");
+}
+print('OK!' . "\n" .
+      'All Done!' . "\n\n");
 ?>

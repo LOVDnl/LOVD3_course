@@ -5,11 +5,11 @@
 
 SET FOREIGN_KEY_CHECKS=0; -- Necessary because we're dropping the tables and recreating them.
 
--- MySQL dump 10.13  Distrib 5.5.43, for debian-linux-gnu (x86_64)
+-- MySQL dump 10.13  Distrib 5.5.46, for debian-linux-gnu (x86_64)
 --
 -- Host: localhost    Database: lovd3_training
 -- ------------------------------------------------------
--- Server version	5.5.43-0ubuntu0.14.04.1-log
+-- Server version	5.5.46-0ubuntu0.14.04.2-log
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -626,7 +626,7 @@ DROP TABLE IF EXISTS `lovd_training_master_diseases`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `lovd_training_master_diseases` (
   `id` smallint(5) unsigned zerofill NOT NULL AUTO_INCREMENT,
-  `symbol` varchar(15) NOT NULL,
+  `symbol` varchar(25) NOT NULL,
   `name` varchar(255) NOT NULL,
   `id_omim` int(10) unsigned DEFAULT NULL,
   `created_by` smallint(5) unsigned zerofill DEFAULT NULL,
@@ -649,7 +649,7 @@ CREATE TABLE `lovd_training_master_diseases` (
 
 LOCK TABLES `lovd_training_master_diseases` WRITE;
 /*!40000 ALTER TABLE `lovd_training_master_diseases` DISABLE KEYS */;
-INSERT INTO `lovd_training_master_diseases` VALUES (00000,'Healty/Control','Healthy individual / control',NULL,00000,'2015-02-26 09:58:10',NULL,NULL);
+INSERT INTO `lovd_training_master_diseases` VALUES (00000,'Healthy/Control','Healthy individual / control',NULL,00000,'2015-02-26 09:58:10',NULL,NULL);
 /*!40000 ALTER TABLE `lovd_training_master_diseases` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -926,6 +926,7 @@ CREATE TABLE `lovd_training_master_logs` (
 LOCK TABLES `lovd_training_master_logs` WRITE;
 /*!40000 ALTER TABLE `lovd_training_master_logs` DISABLE KEYS */;
 INSERT INTO `lovd_training_master_logs` VALUES ('Install','2015-02-26 09:58:13',285793,00001,'Installation','Installation of LOVD 3.0-13 complete');
+INSERT INTO `lovd_training_master_logs` VALUES ('Install','2016-05-27 20:27:44',375724,00002,'Upgrade','Successfully upgraded LOVD from 3.0-13 to 3.0-15, executing 12 queries');
 /*!40000 ALTER TABLE `lovd_training_master_logs` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1180,7 +1181,7 @@ CREATE TABLE `lovd_training_master_status` (
 
 LOCK TABLES `lovd_training_master_status` WRITE;
 /*!40000 ALTER TABLE `lovd_training_master_status` DISABLE KEYS */;
-INSERT INTO `lovd_training_master_status` VALUES (0,'3.0-13','training_course_LOVD3/master','2015-04-21 13:47:15','3.0-13',0,'',NULL,'2015-02-26',NULL);
+INSERT INTO `lovd_training_master_status` VALUES (0,'3.0-15','training_course_LOVD3/master','2016-05-27 20:27:46','3.0-15',0,'',NULL,'2015-02-26','2016-05-27');
 /*!40000 ALTER TABLE `lovd_training_master_status` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1192,7 +1193,7 @@ DROP TABLE IF EXISTS `lovd_training_master_transcripts`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `lovd_training_master_transcripts` (
-  `id` smallint(5) unsigned zerofill NOT NULL AUTO_INCREMENT,
+  `id` mediumint(8) unsigned zerofill NOT NULL AUTO_INCREMENT,
   `geneid` varchar(25) NOT NULL,
   `name` varchar(255) NOT NULL,
   `id_mutalyzer` tinyint(3) unsigned zerofill DEFAULT NULL,
@@ -1228,8 +1229,8 @@ CREATE TABLE `lovd_training_master_transcripts` (
 
 LOCK TABLES `lovd_training_master_transcripts` WRITE;
 /*!40000 ALTER TABLE `lovd_training_master_transcripts` DISABLE KEYS */;
-INSERT INTO `lovd_training_master_transcripts` VALUES (00001,'TTC8','transcript variant 1',001,'NM_144596.2','','NP_653197.2','','',-74,2129,1548,89290978,89344335,00001,'2015-02-26 09:58:55',NULL,NULL);
-INSERT INTO `lovd_training_master_transcripts` VALUES (00002,'TTC8','transcript variant 2',002,'NM_198309.2','','NP_938051.1','','',-74,2099,1518,89290978,89344335,00001,'2015-02-26 09:58:55',NULL,NULL);
+INSERT INTO `lovd_training_master_transcripts` VALUES (00000001,'TTC8','transcript variant 1',001,'NM_144596.2','','NP_653197.2','','',-74,2129,1548,89290978,89344335,00001,'2015-02-26 09:58:55',NULL,NULL);
+INSERT INTO `lovd_training_master_transcripts` VALUES (00000002,'TTC8','transcript variant 2',002,'NM_198309.2','','NP_938051.1','','',-74,2099,1518,89290978,89344335,00001,'2015-02-26 09:58:55',NULL,NULL);
 /*!40000 ALTER TABLE `lovd_training_master_transcripts` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1289,7 +1290,7 @@ LOCK TABLES `lovd_training_master_users` WRITE;
 /*!40000 ALTER TABLE `lovd_training_master_users` DISABLE KEYS */;
 INSERT INTO `lovd_training_master_users` VALUES (00000,NULL,0,'LOVD','','','','','',NULL,'',0,'','','',NULL,0,NULL,NULL,0,'',9,NULL,00000,'2015-02-26 09:58:06',NULL,NULL);
 INSERT INTO `lovd_training_master_users` VALUES (00001,NULL,0,'LOVD3 Admin','Leiden University Medical Center','Human Genetics','+31 (0)71 526 9438','Einthovenweg 20\r\n2333 ZC Leiden','Leiden','NL','admin@LOVD.nl',0,'','admin','539a45ca86b9bc684556be3800a24471:78c3fb3f:43786111','',0,'sg8idhc1e571o0269a1n0rt0t5','',9,'*',0,'2015-04-10 14:00:24',00001,'2015-02-26 09:58:06',NULL,NULL);
-INSERT INTO `lovd_training_master_users` VALUES (00002,NULL,0,'Manager','Leiden University Medical Center','Human Genetics','','Einthovenweg 20\r\n2333 ZC Leiden','Leiden','NL','managertest@lovd.nl',0,'','manager','a59a8889cd86525e67fa2b0f60a9c486:1bb08979:76a2dc8f','',0,'rknu0kpebmtvom0nmpqqgk5cf5',NULL,7,'*',0,'2015-04-21 13:47:51',00001,'2015-02-26 09:58:19',00002,'2015-04-15 17:36:44');
+INSERT INTO `lovd_training_master_users` VALUES (00002,NULL,0,'Manager','Leiden University Medical Center','Human Genetics','','Einthovenweg 20\r\n2333 ZC Leiden','Leiden','NL','managertest@lovd.nl',0,'','manager','a59a8889cd86525e67fa2b0f60a9c486:1bb08979:76a2dc8f','',0,'svi7e65t5okp1obvsicqcdpvu1',NULL,7,'*',0,'2016-05-27 20:27:42',00001,'2015-02-26 09:58:19',00002,'2015-04-15 17:36:44');
 INSERT INTO `lovd_training_master_users` VALUES (00003,NULL,0,'Curator','Leiden University Medical Center','Human Genetics','','Einthovenweg 20\r\n2333 ZC Leiden','Leiden','NL','curatortest@lovd.nl',0,'','curator','a954c9b81d78003ba78ec4ee68591697:f5e62bdf:fae8e165',NULL,0,NULL,NULL,1,'*',0,NULL,00001,'2015-02-26 09:58:20',00002,'2015-04-21 13:47:53');
 INSERT INTO `lovd_training_master_users` VALUES (00004,NULL,0,'Submitter','Leiden University Medical Center','Human Genetics','','Einthovenweg 20\r\n2333 ZC Leiden','Leiden','NL','submitter@LOVD.nl',0,'','submitter','1df00d5f7a30c75eaab64430239a9744:9515dbd0:20a50d41',NULL,0,NULL,NULL,1,'*',0,NULL,00001,'2015-02-26 09:58:21',NULL,NULL);
 /*!40000 ALTER TABLE `lovd_training_master_users` ENABLE KEYS */;
@@ -1451,7 +1452,7 @@ DROP TABLE IF EXISTS `lovd_training_master_variants_on_transcripts`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `lovd_training_master_variants_on_transcripts` (
   `id` int(10) unsigned zerofill NOT NULL,
-  `transcriptid` smallint(5) unsigned zerofill NOT NULL,
+  `transcriptid` mediumint(8) unsigned zerofill NOT NULL,
   `effectid` tinyint(2) unsigned zerofill DEFAULT NULL,
   `position_c_start` mediumint(9) DEFAULT NULL,
   `position_c_start_intron` int(11) DEFAULT NULL,
@@ -1491,6 +1492,6 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2015-04-24 10:20:14
+-- Dump completed on 2016-05-27 20:39:05
 
 SET FOREIGN_KEY_CHECKS=1;

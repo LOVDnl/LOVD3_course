@@ -6,7 +6,7 @@
  *
  * Created     : 2016-05-27
  * Modified    : 2016-05-27
- * Version     : 0.0.6
+ * Version     : 0.1
  * For LOVD    : 3.0-15
  *
  * Purpose     : Create or reset LOVD3 training databases, based on a master
@@ -14,7 +14,7 @@
  *               in its table prefix (config.ini.php), in its URL (TABLE_CONFIG)
  *               and in its LOVD signature (TABLE_STATUS).
  *
- * Changelog   : 0.1    2016-05-2?
+ * Changelog   : 0.1    2016-05-27
  *               Initial release.
  *
  * Copyright   : 2004-2016 Leiden University Medical Center; http://www.LUMC.nl/
@@ -43,7 +43,7 @@ if (isset($_SERVER['HTTP_HOST'])) {
 }
 
 $_CONFIG = array(
-    'version' => '0.0.6',
+    'version' => '0.1',
     'config_file' => 'config.ini.php', // The name of the LOVD config file that we'll search for.
     'master_dump_file' => 'SQL_dump_master.sql',
     'full_dump_file' => 'SQL_dump_ALL.sql',
@@ -330,7 +330,7 @@ for ($i = 1; $i <= $_CONFIG['user']['training_instances']; $i++) {
       Could not create ' . $_CONFIG['config_file'] . ' for ' . $sDirName . '.' . "\n");
     }
 }
-print(' OK!' . "\n");
+print(chr(8) . chr(8) . 'OK!' . "\n");
 
 
 

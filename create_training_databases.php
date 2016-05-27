@@ -6,7 +6,7 @@
  *
  * Created     : 2016-05-27
  * Modified    : 2016-05-27
- * Version     : 0.0.2
+ * Version     : 0.0.3
  * For LOVD    : 3.0-15
  *
  * Purpose     : Create or reset LOVD3 training databases, based on a master
@@ -43,7 +43,7 @@ if (isset($_SERVER['HTTP_HOST'])) {
 }
 
 $_CONFIG = array(
-    'version' => '0.0.2',
+    'version' => '0.0.3',
     'config_file' => 'config.ini.php', // The name of the LOVD config file that we'll search for.
     'master_dump_file' => 'SQL_dump_master.sql',
     'default_relative_training_path' => '../', // The path where we build the trainings databases, relative to the master.
@@ -233,6 +233,11 @@ if (!$bUseLOVDUser) {
     $_INI['database']['username'] = $_CONFIG['user']['mysql_username'];
 }
 
+// Prepare dump file.
+$f = fopen($_CONFIG['master_dump_file'], 'w');
+fputs($f, 'SET FOREIGN_KEY_CHECKS=0; -- Necessary because we\'re dropping the tables and recreating them.' . "\n\n");
+fclose($f);
+
 // Prepare command to dump the tables.
 // Note that the ORDER OF ARGUMENTS is extremely important. If --skip-opt is done last, part of the arguments are ignored.
 $sCommand = 'mysqldump --skip-opt --add-drop-table --add-locks --create-options --disable-keys --flush-logs --order-by-primary --quick --set-charset --single-transaction' .
@@ -248,7 +253,8 @@ $sCommand .= ' ' . escapeshellarg($_INI['database']['database']);
 // Gather list of this LOVD's tables.
 require ROOT_PATH . 'install/inc-sql-tables.php';
 $aTables = array_map('constant', array_keys($aTableSQL));
-$sCommand .= ' ' . implode(' ', $aTables) . ' > ' . escapeshellarg($_CONFIG['master_dump_file']);
+sort($aTables); // Make it like a normal mysqldump file, which sorts the tables by name.
+$sCommand .= ' ' . implode(' ', $aTables) . ' >> ' . escapeshellarg($_CONFIG['master_dump_file']);
 
 // Dump the data!
 print('  Creating an SQL dump of the master database...' . "\n" .
@@ -258,5 +264,11 @@ if ($nReturn) {
     die('  Failed.
     Could not create database dump.' . "\n");
 }
+
+// Finish dump file.
+$f = fopen($_CONFIG['master_dump_file'], 'a');
+fputs($f, "\n" . 'SET FOREIGN_KEY_CHECKS=1;' . "\n");
+fclose($f);
+
 print('  OK!' . "\n");
 ?>

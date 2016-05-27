@@ -6,7 +6,7 @@
  *
  * Created     : 2016-05-27
  * Modified    : 2016-05-27
- * Version     : 0.0.3
+ * Version     : 0.0.4
  * For LOVD    : 3.0-15
  *
  * Purpose     : Create or reset LOVD3 training databases, based on a master
@@ -43,9 +43,10 @@ if (isset($_SERVER['HTTP_HOST'])) {
 }
 
 $_CONFIG = array(
-    'version' => '0.0.3',
+    'version' => '0.0.4',
     'config_file' => 'config.ini.php', // The name of the LOVD config file that we'll search for.
     'master_dump_file' => 'SQL_dump_master.sql',
+    'full_dump_file' => 'SQL_dump_ALL.sql',
     'default_relative_training_path' => '../', // The path where we build the trainings databases, relative to the master.
     'maximum_training_instances' => 25,
     'user' => array(
@@ -271,4 +272,20 @@ fputs($f, "\n" . 'SET FOREIGN_KEY_CHECKS=1;' . "\n");
 fclose($f);
 
 print('  OK!' . "\n");
+
+
+
+
+
+// Write massive SQL file for all instances.
+print('  Creating SQL dump for all instances... ');
+$f = fopen($_CONFIG['full_dump_file'], 'w');
+$sTemplate = file_get_contents($_CONFIG['master_dump_file']);
+
+for ($i = 1; $i <= $_CONFIG['user']['training_instances']; $i++) {
+    $i = str_pad($i, 2, '0', STR_PAD_LEFT);
+    fputs($f, str_replace('master', $i, $sTemplate) . "\n\n\n");
+}
+fclose($f);
+print('OK!' . "\n");
 ?>

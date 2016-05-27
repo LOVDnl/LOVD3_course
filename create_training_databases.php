@@ -6,7 +6,7 @@
  *
  * Created     : 2016-05-27
  * Modified    : 2016-05-27
- * Version     : 0.0.1
+ * Version     : 0.0.2
  * For LOVD    : 3.0-15
  *
  * Purpose     : Create or reset LOVD3 training databases, based on a master
@@ -43,7 +43,7 @@ if (isset($_SERVER['HTTP_HOST'])) {
 }
 
 $_CONFIG = array(
-    'version' => '0.1',
+    'version' => '0.0.2',
     'config_file' => 'config.ini.php', // The name of the LOVD config file that we'll search for.
     'master_dump_file' => 'SQL_dump_master.sql',
     'default_relative_training_path' => '../', // The path where we build the trainings databases, relative to the master.
@@ -54,6 +54,8 @@ $_CONFIG = array(
         'lovd_training_databases_path' => '',
         'training_instances' => 25,
         'master_dump_file_overwrite' => 'y',
+        'mysql_username' => '', // Will only be used if the LOVD's user does not have the proper rights.
+        'mysql_password' => '', // Will only be used if the LOVD's user does not have the proper rights.
     ),
 );
 
@@ -115,7 +117,12 @@ function lovd_verifySettings ($sKeyName, $sMessage, $sVerifyType, $options)
                 if ($aRange[1] !== '' && $sInput > $aRange[1]) {
                     break;
                 }
-                $_SETT[$sKeyName] = $sInput;
+                $_CONFIG['user'][$sKeyName] = $sInput;
+                return true;
+
+            case 'string':
+                $sInput = $sInput;
+                $_CONFIG['user'][$sKeyName] = $sInput;
                 return true;
 
             case 'file':
@@ -216,13 +223,25 @@ ini_set('display_errors', '1'); // We do want to see errors from here on.
 // Check if we have the FLUSH TABLES command, which is needed for the dump.
 $bUseLOVDUser = (bool) $_DB->query('FLUSH TABLES', array(), false);
 
+// If the LOVD's MySQL user does not have the proper privileges, ask the information from the user.
+if (!$bUseLOVDUser) {
+    print('  This LOVD\'s MySQL username does not have the proper privileges to create a database dump.' . "\n");
+    while (!$_CONFIG['user']['mysql_username']) {
+        lovd_verifySettings('mysql_username', '  MySQL username to use for the database dump', 'string', '');
+    }
+    // Overwrite the LOVD's INI settings, because that's easier.
+    $_INI['database']['username'] = $_CONFIG['user']['mysql_username'];
+}
+
 // Prepare command to dump the tables.
 // Note that the ORDER OF ARGUMENTS is extremely important. If --skip-opt is done last, part of the arguments are ignored.
-$sCommand = 'mysqldump --skip-opt --add-drop-table --add-locks --create-options --disable-keys --flush-logs --order-by-primary --quick --set-charset --single-transaction';
+$sCommand = 'mysqldump --skip-opt --add-drop-table --add-locks --create-options --disable-keys --flush-logs --order-by-primary --quick --set-charset --single-transaction' .
+    ' --user ' . escapeshellarg($_INI['database']['username']);
 if ($bUseLOVDUser) {
-    $sCommand .=
-        ' --user ' . escapeshellarg($_INI['database']['username']) .
-        ' --password=' . escapeshellarg($_INI['database']['password']);
+    $sCommand .= ' --password=' . escapeshellarg($_INI['database']['password']);
+} else {
+    // Let MySQL dump ask for a password.
+    $sCommand .= ' -p';
 }
 $sCommand .= ' ' . escapeshellarg($_INI['database']['database']);
 
@@ -232,11 +251,12 @@ $aTables = array_map('constant', array_keys($aTableSQL));
 $sCommand .= ' ' . implode(' ', $aTables) . ' > ' . escapeshellarg($_CONFIG['master_dump_file']);
 
 // Dump the data!
-print('  Creating an SQL dump of the master database... ');
+print('  Creating an SQL dump of the master database...' . "\n" .
+      '    '); // Putting a newline here, because mysqldump might ask for a password.
 exec($sCommand, $aOutput, $nReturn);
 if ($nReturn) {
-    die('Failed.
+    die('  Failed.
     Could not create database dump.' . "\n");
 }
-print('OK!' . "\n");
+print('  OK!' . "\n");
 ?>

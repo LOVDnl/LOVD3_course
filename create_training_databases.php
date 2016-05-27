@@ -6,7 +6,7 @@
  *
  * Created     : 2016-05-27
  * Modified    : 2016-05-27
- * Version     : 0.0.4
+ * Version     : 0.0.5
  * For LOVD    : 3.0-15
  *
  * Purpose     : Create or reset LOVD3 training databases, based on a master
@@ -43,7 +43,7 @@ if (isset($_SERVER['HTTP_HOST'])) {
 }
 
 $_CONFIG = array(
-    'version' => '0.0.4',
+    'version' => '0.0.5',
     'config_file' => 'config.ini.php', // The name of the LOVD config file that we'll search for.
     'master_dump_file' => 'SQL_dump_master.sql',
     'full_dump_file' => 'SQL_dump_ALL.sql',
@@ -189,6 +189,11 @@ print('LOVD3 training database creator v' . $_CONFIG['version'] . '.' . "\n");
 if (!lovd_verifySettings('lovd_master_path', 'Path of LOVD master installation to base installations on', 'lovd_path', '')) {
     die('  Failed to get LOVD path.' . "\n");
 }
+// Master directory should not be numeric, to prevent possible overlap with the children databases.
+if (ctype_digit(basename($_CONFIG['user']['lovd_master_path']))) {
+    die('  The LOVD master path can not be numeric,
+    to prevent overlap with copied instances.' . "\n");
+}
 // Predict where we'll put the trainings databases.
 $_CONFIG['user']['lovd_training_databases_path'] = realpath($_CONFIG['user']['lovd_master_path'] . '/' . $_CONFIG['default_relative_training_path']);
 lovd_verifySettings('lovd_training_databases_path', 'Path where trainings databases will be created, or reset', 'path', '');
@@ -288,4 +293,41 @@ for ($i = 1; $i <= $_CONFIG['user']['training_instances']; $i++) {
 }
 fclose($f);
 print('OK!' . "\n");
+
+
+
+
+
+// Loop through instances, removing the original directory, copying
+// master to this directory, and fix the config.ini.php file.
+print('  Resetting directories...   ');
+for ($i = 1; $i <= $_CONFIG['user']['training_instances']; $i++) {
+    $i = str_pad($i, 2, '0', STR_PAD_LEFT);
+    print(chr(8) . chr(8) . $i); // Backspace (x2), new dir name.
+    $sDirName = $_CONFIG['user']['lovd_training_databases_path'] . '/' . $i;
+
+    // Remove directory, if it exists.
+    if (file_exists($sDirName)) {
+        exec('rm -r ' . $sDirName, $aOutput, $nReturn);
+        if ($nReturn) {
+            die("\n" . '    Failed.
+      Could not remove directory ' . $sDirName . '.' . "\n");
+        }
+    }
+
+    // Copy it from master.
+    exec('cp -pr ' . $_CONFIG['user']['lovd_master_path'] . ' ' . $sDirName, $aOutput, $nReturn);
+    if ($nReturn) {
+        die("\n" . '    Failed.
+      Could not copy master to ' . $sDirName . '.' . "\n");
+    }
+
+    // Modify the config.ini.php file. It's easier to take the one from master.
+    exec('sed \'s/master/' . $i . '/\' ' . $_CONFIG['user']['lovd_master_path'] . '/' . $_CONFIG['config_file'] . ' > ' . $sDirName . '/' . $_CONFIG['config_file'], $aOutput, $nReturn);
+    if ($nReturn) {
+        die("\n" . '    Failed.
+      Could not create ' . $_CONFIG['config_file'] . ' for ' . $sDirName . '.' . "\n");
+    }
+}
+print(' OK!' . "\n");
 ?>
